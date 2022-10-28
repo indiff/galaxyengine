@@ -22,7 +22,6 @@ jobs:
        gcc --version
        g++ --version
        sudo apt install make automake cmake git bison libaio-dev libncurses-dev libsasl2-dev libldap2-dev libssl-dev pkg-config
-       cd galaxyengine
        sudo wget https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz
        sudo mkdir extra/boost
        sudo cp boost_1_70_0.tar.gz extra/boost/
