@@ -33,7 +33,7 @@ jobs:
         -DMYSQL_MAINTAINER_MODE=0           \
         -DWITH_SSL=openssl                  \
         -DWITH_BOOST="./extra/boost/boost_1_70_0.tar.gz"
-       sudo make -j8 && make install
+       sudo make -j2 && make install
        sudo zip -q -r u01.zip /u01
     - name: Upload artifact
       uses: actions/upload-artifact@v3.1.1
