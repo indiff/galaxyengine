@@ -1,0 +1,45 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: install gcc toolset
+      run: |
+       apt install -y gcc-7 g++-7
+       update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
+                         --slave /usr/bin/g++ g++ /usr/bin/g++-7
+       update-alternatives --config gcc
+       gcc --version
+       g++ --version
+       apt install make automake cmake git bison libaio-dev libncurses-dev libsasl2-dev libldap2-dev libssl-dev pkg-config
+       cd galaxyengine
+       wget https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz
+       mkdir extra/boost
+       cp boost_1_70_0.tar.gz extra/boost/
+       cmake .                                 \
+        -DFORCE_INSOURCE_BUILD=ON           \
+        -DCMAKE_BUILD_TYPE="Debug"          \
+        -DSYSCONFDIR="/u01/mysql"           \
+        -DCMAKE_INSTALL_PREFIX="/u01/mysql" \
+        -DMYSQL_DATADIR="/u01/mysql/data"   \
+        -DMYSQL_MAINTAINER_MODE=0           \
+        -DWITH_SSL=openssl                  \
+        -DWITH_BOOST="./extra/boost/boost_1_70_0.tar.gz"
+        make -j8 && make install
+        zip -q -r u01.zip /u01
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: u01
+        path: |
+          u01.zip
