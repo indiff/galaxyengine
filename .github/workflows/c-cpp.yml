@@ -1,0 +1,48 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: centos7
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: install gcc toolset
+      run: |
+       yum install -y git centos-release-scl mysql java-1.8.0-openjdk-devel
+       yum install -y make automake openssl-devel ncurses-devel bison libaio-devel devtoolset-7-gcc devtoolset-7-gcc-c++ devtoolset-7-binutils
+       echo "source /opt/rh/devtoolset-7/enable" >>/etc/profile && source /etc/profile
+    - name: install gcc toolset
+      run: |
+       wget https://cmake.org/files/v3.23/cmake-3.23.2.tar.gz && tar -zxvf cmake-3.23.2.tar.gz && cd cmake-3.23.2/
+       ./bootstrap && gmake && gmake install
+    - name: add boost
+      run: |
+       wget https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz
+       mkdir extra/boost
+       cp boost_1_70_0.tar.gz extra/boost/
+    - name: compile
+      run: |
+       cmake .                                 \
+       -DFORCE_INSOURCE_BUILD=ON           \
+       -DCMAKE_BUILD_TYPE="Release"          \
+       -DSYSCONFDIR="/u01/mysql"           \
+       -DCMAKE_INSTALL_PREFIX="/u01/mysql" \
+       -DMYSQL_DATADIR="/u01/mysql/data"   \
+       -DMYSQL_MAINTAINER_MODE=0           \
+       -DWITH_SSL=openssl                  \
+       -DWITH_BOOST="./extra/boost/boost_1_70_0.tar.gz"
+       make -j8 && make install
+       zip -q -r u01.zip /u01
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: u01
+        path: |
+          u01.zip
